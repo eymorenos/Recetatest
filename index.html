@@ -155,11 +155,11 @@
                     "Avena en Hojuelas": 500,
                     "Uvas Pasas": 250,
                     "Leche en Polvo": 125,
-                    "Huevo": 12, // Unidades de huevo
-                    "Polvo de Hornear": 15,
+                    "Huevo": 12,
+                    "Polvo de Hornear": 10,
                     "Bicarbonato": 10,
-                    "Color Canela": 1, // en tapas
-                    "Esencia Linojo": 1 // en tapas
+                    "Color Caramelo": 1,
+                    "Esencia de Vainilla": 1
                 }
             },
             buñuelo: {
@@ -170,8 +170,8 @@
                     "Explanagle": 350,
                     "Azúcar": 100,
                     "Polvo de Hornear": 15,
-                    "Leche": 400, // ml
-                    "Huevo": 2 // Unidades de huevo
+                    "Leche": 400,
+                    "Huevo": 2
                 }
             },
             torta_banano: {
@@ -179,7 +179,7 @@
                 ingredients: {
                     "Pan": 100,
                     "Azúcar": 18.75,
-                    "Esencia de Banano": 2,
+                    "Esencia de Banano": "variable", // Se calculará dinámicamente en función del pan
                     "Agua": 156.25
                 }
             }
@@ -212,9 +212,14 @@
                 let amount = recipe.ingredients[ingredient];
                 let ingredientAmount;
 
-                if (ingredient === "Huevo") {
+                if (ingredient === "Huevo" && recipe.base === "Queso") {
+                    ingredientAmount = Math.ceil((baseAmount / 3500) * 2);
+                } else if (ingredient === "Esencia de Banano" && recipe.base === "Pan") {
+                    // Calcular Esencia de Banano en función del pan (2 tapas por cada 3200g de pan)
+                    ingredientAmount = Math.ceil((baseAmount / 3200) * 2);
+                } else if (ingredient === "Huevo" || ingredient === "Esencia de Banano") {
                     ingredientAmount = amount;
-                } else if (ingredient === "Color Canela" || ingredient === "Esencia Linojo") {
+                } else if (ingredient === "Color Caramelo" || ingredient === "Esencia de Vainilla") {
                     ingredientAmount = amount;
                 } else if (ingredient === "Leche") {
                     ingredientAmount = amount;
@@ -225,7 +230,7 @@
                 resultHTML += `
                     <tr id="ingredient-${markerIndex}">
                         <td><span class="marker" onclick="toggleMarker(${markerIndex})">${markerIndex++}</span> <span class="ingredient-text">${ingredient}</span></td>
-                        <td><span class="ingredient-amount">${formatNumber(Math.round(ingredientAmount))}${ingredient === "Huevo" ? " unidades" : ingredient === "Leche" ? " ml" : (ingredient === "Color Canela" || ingredient === "Esencia Linojo") ? " tapa" : " g"}</span></td>
+                        <td><span class="ingredient-amount">${formatNumber(Math.round(ingredientAmount))}${ingredient === "Huevo" ? " unidades" : ingredient === "Leche" ? " ml" : (ingredient === "Color Caramelo" || ingredient === "Esencia de Vainilla" || ingredient === "Esencia de Banano") ? " tapa" : " g"}</span></td>
                     </tr>`;
             }
 
