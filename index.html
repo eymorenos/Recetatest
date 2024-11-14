@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Ingredientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #result th, #result td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #result th {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .marker {
+            background-color: transparent;
+            color: #28a745;
+            font-weight: bold;
+            padding: 5px;
+            border: 2px solid #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .marker.active {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .strikethrough {
+            text-decoration: line-through;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Ingredientes</h1>
+        
+        <label for="product">Selecciona un producto:</label>
+        <select id="product">
+            <option value="empanadas">Empanadas</option>
+            <option value="almojabana">Almojábana</option>
+            <option value="galletas_avena">Galletas Avena</option>
+            <option value="buñuelo">Buñuelo</option>
+            <option value="torta_banano">Torta Banano</option>
+        </select>
+
+        <label for="baseAmount">Cantidad base (g):</label>
+        <input type="number" id="baseAmount" placeholder="Cantidad en gramos" min="1">
+
+        <button onclick="calculate()">Calcular</button>
+
+        <div id="result">
+            <!-- Resultados aparecerán aquí -->
+        </div>
+    </div>
+
+    <script>
+        const recipes = {
+            empanadas: {
+                base: "Harina",
+                ingredients: {
+                    "Harina": 100,
+                    "Grasa": 13.33,
+                    "Azúcar": 6.67,
+                    "Sal": 2,
+                    "Polvo de Hornear": 0.4,
+                    "Color": 0.4,
+                    "Agua": 46.67
+                }
+            },
+            almojabana: {
+                base: "Queso",
+                ingredients: {
+                    "Queso": 100,
+                    "Harina de Maíz": 7.14,
+                    "Harina de Trigo": 7.14,
+                    "Azúcar": 7.14,
+                    "Sal": 3.57,
+                    "Polvo de Hornear": 0.43,
+                    "Huevo": "variable" // Se calcula en función del queso
+                }
+            },
+            galletas_avena: {
+                base: "Grasa",
+                ingredients: {
+                    "Grasa": 1000,
+                    "Azúcar": 1000,
+                    "Harina de Trigo": 750,
+                    "Avena en Hojuelas": 500,
+                    "Uvas Pasas": 250,
+                    "Leche en Polvo": 125,
+                    "Huevo": 12, // Unidades de huevo
+                    "Polvo de Hornear": 15,
+                    "Bicarbonato": 10,
+                    "Color Canela": 1, // en tapas
+                    "Esencia Linojo": 1 // en tapas
+                }
+            },
+            buñuelo: {
+                base: "Queso Campesino",
+                ingredients: {
+                    "Queso Campesino": 500,
+                    "Colmaiz": 350,
+                    "Explanagle": 350,
+                    "Azúcar": 100,
+                    "Polvo de Hornear": 15,
+                    "Leche": 400, // ml
+                    "Huevo": 2 // Unidades de huevo
+                }
+            },
+            torta_banano: {
+                base: "Pan",
+                ingredients: {
+                    "Pan": 100,
+                    "Azúcar": 18.75,
+                    "Esencia de Banano": 2,
+                    "Agua": 156.25
+                }
+            }
+        };
+
+        function formatNumber(number) {
+            return number.toLocaleString('es-ES');
+        }
+
+        function calculate() {
+            const product = document.getElementById("product").value;
+            const baseAmount = parseFloat(document.getElementById("baseAmount").value);
+
+            if (isNaN(baseAmount) || baseAmount <= 0) {
+                alert("Por favor ingresa una cantidad válida.");
+                return;
+            }
+
+            const recipe = recipes[product];
+            let resultHTML = `<h3>Ingredientes para ${formatNumber(baseAmount)}g de ${recipe.base}</h3>`;
+            
+            resultHTML += `<table>
+                            <tr>
+                                <th>Ingrediente</th>
+                                <th>Cantidad</th>
+                            </tr>`;
+
+            let markerIndex = 1;
+            for (let ingredient in recipe.ingredients) {
+                let amount = recipe.ingredients[ingredient];
+                let ingredientAmount;
+
+                if (ingredient === "Huevo") {
+                    ingredientAmount = amount;
+                } else if (ingredient === "Color Canela" || ingredient === "Esencia Linojo") {
+                    ingredientAmount = amount;
+                } else if (ingredient === "Leche") {
+                    ingredientAmount = amount;
+                } else {
+                    ingredientAmount = (baseAmount * amount) / recipe.ingredients[recipe.base];
+                }
+
+                resultHTML += `
+                    <tr id="ingredient-${markerIndex}">
+                        <td><span class="marker" onclick="toggleMarker(${markerIndex})">${markerIndex++}</span> <span class="ingredient-text">${ingredient}</span></td>
+                        <td><span class="ingredient-amount">${formatNumber(Math.round(ingredientAmount))}${ingredient === "Huevo" ? " unidades" : ingredient === "Leche" ? " ml" : (ingredient === "Color Canela" || ingredient === "Esencia Linojo") ? " tapa" : " g"}</span></td>
+                    </tr>`;
+            }
+
+            resultHTML += "</table>";
+            document.getElementById("result").innerHTML = resultHTML;
+        }
+
+        function toggleMarker(index) {
+            const row = document.getElementById(`ingredient-${index}`);
+            row.classList.toggle("strikethrough");
+            const marker = row.querySelector('.marker');
+            marker.classList.toggle("active");
+        }
+    </script>
+</body>
+</html>
